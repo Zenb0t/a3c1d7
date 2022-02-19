@@ -44,6 +44,11 @@ const Sidebar = ({
               setActiveChat={setActiveChat}
             />
           );
+        }).sort((a, b) => {
+          return a.props.conversation.latestMessageTime >
+            b.props.conversation.latestMessageTime
+            ? -1
+            : 1;
         })}
     </Box>
   );
