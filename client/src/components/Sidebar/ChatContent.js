@@ -20,13 +20,15 @@ const useStyles = makeStyles((theme) => ({
   },
   unreadMsgs: {
     textAlign: "center",
-    fontSize: 12,
+    fontSize: 10,
     color: "#FFFFFF",
-    letterSpacing: -0.17,
     marginRight: 30,
     backgroundColor: "#3F92FF",
-    borderRadius: "50%",
+    borderRadius: "10px",
     minWidth: 20,
+    height: 20,
+    padding: "3px 9px 3px 10px",
+    fontWeight: "700",
   },
 }));
 
@@ -35,6 +37,7 @@ const ChatContent = ({ conversation }) => {
 
   const { otherUser } = conversation;
   const latestMessageText = conversation.id && conversation.latestMessageText;
+  const unreadMsgs = conversation.id && conversation.unreadMessageCount;
 
   return (
     <Box className={classes.root}>
@@ -46,7 +49,7 @@ const ChatContent = ({ conversation }) => {
           {latestMessageText}
         </Typography>
       </Box>
-      <p className={classes.unreadMsgs}>1</p>
+      <p className={classes.unreadMsgs}>{unreadMsgs}</p>
     </Box>
   );
 };
