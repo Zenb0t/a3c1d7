@@ -46,7 +46,7 @@ const ChatContent = ({ conversation }) => {
           {latestMessageText}
         </Typography>
       </Box>
-      <span className={classes.unreadMsgs}>1</span>
+      <p className={classes.unreadMsgs}>1</p>
     </Box>
   );
 };
