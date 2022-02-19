@@ -18,6 +18,16 @@ const useStyles = makeStyles((theme) => ({
     color: "#9CADC8",
     letterSpacing: -0.17,
   },
+  unreadMsgs: {
+    textAlign: "center",
+    fontSize: 12,
+    color: "#FFFFFF",
+    letterSpacing: -0.17,
+    marginRight: 30,
+    backgroundColor: "#3F92FF",
+    borderRadius: "50%",
+    minWidth: 20,
+  },
 }));
 
 const ChatContent = ({ conversation }) => {
@@ -36,6 +46,7 @@ const ChatContent = ({ conversation }) => {
           {latestMessageText}
         </Typography>
       </Box>
+      <span className={classes.unreadMsgs}>1</span>
     </Box>
   );
 };
