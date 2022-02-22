@@ -13,6 +13,12 @@ const useStyles = makeStyles((theme) => ({
     fontWeight: "bold",
     letterSpacing: -0.2,
   },
+  previewUnreadText: {
+    fontWeight: 600,
+    fontSize: 12,
+    color: "black",
+    letterSpacing: -0.17,
+  },
   previewText: {
     fontSize: 12,
     color: "#9CADC8",
@@ -26,6 +32,7 @@ const useStyles = makeStyles((theme) => ({
     backgroundColor: "#3F92FF",
     borderRadius: "10px",
     minWidth: 20,
+    maxWidth: 30,
     height: 20,
     padding: "3px 9px 3px 10px",
     fontWeight: "700",
@@ -37,6 +44,7 @@ const ChatContent = ({ conversation }) => {
 
   const { otherUser } = conversation;
   const latestMessageText = conversation.id && conversation.latestMessageText;
+  const latestMessageSenderId = conversation.id && conversation.latestMessageSender;
   const unreadMsgs = conversation.id && conversation.unreadMessageCount;
 
   return (
@@ -45,11 +53,11 @@ const ChatContent = ({ conversation }) => {
         <Typography className={classes.username}>
           {otherUser.username}
         </Typography>
-        <Typography className={classes.previewText}>
+        <Typography className={unreadMsgs > 0 && latestMessageSenderId === otherUser.id? classes.previewUnreadText  : classes.previewText }>
           {latestMessageText}
         </Typography>
       </Box>
-      <p className={classes.unreadMsgs}>{unreadMsgs}</p>
+      {unreadMsgs > 0 ? <Typography className={classes.unreadMsgs}>{unreadMsgs}</Typography> : null}
     </Box>
   );
 };
