@@ -17,7 +17,11 @@ const Message = db.define("message", {
   },
 });
 
-//TODO: Review this
+/**
+ * Finds all unread messages for a conversation and a given user.
+ * @param {number} conversationId - The id of the conversation.
+ * @param {number} userId - The id of the user.
+ */
 Message.findUnreadMessages = async function (conversationId, userId) {
   const messages = await Message.findAll({
     where: {
