@@ -119,12 +119,19 @@ const Home = ({ user, logout }) => {
     [setConversations, conversations, activeConversation]
   );
 
-  const markAsRead = useCallback(async (conversationId, user) => {
+  const readMessages = async (conversationId) => {
     let body = {
       id: conversationId,
     };
     try {
       await axios.put(`/api/conversations/${conversationId}`, body);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const markAsRead = useCallback(async (conversationId, user) => {
+    try {
       let updatedConversations = [...conversations];
       updatedConversations.forEach((convo) => {
         if (convo.id === conversationId) {
@@ -155,13 +162,19 @@ const Home = ({ user, logout }) => {
       prev.map((convo) => {
         if (convo.id === conversationId) {
           const convoCopy = { ...convo };
-          convoCopy.lastReadMessage = { ...convoCopy.messages[convoCopy.messages.length - 1] };
+          const messages = {...convoCopy.messages};
+          for (let j = messages.length-1; j > 0; j--) {
+            if(messages[j].readAt && messages[j].senderId === user.id) {
+              convoCopy.lastReadMessage = messages[j];
+              break;
+            }
+          }
           return convoCopy;
         } else {
           return convo;
         }
       }));
-  }, [setConversations]);
+  }, [user.id]);
 
   const setActiveChat = (username) => {
     setActiveConversation(username);
@@ -197,7 +210,6 @@ const Home = ({ user, logout }) => {
 
   // Lifecycle
 
-  //TODO: Test this
   useEffect(() => {
 
     if (activeConversation !== null) {
@@ -205,19 +217,12 @@ const Home = ({ user, logout }) => {
         (convo) => convo.otherUser.username === activeConversation
       );
       if (conversation?.unreadMessageCount > 0) {
+        readMessages(conversation.id);
         markAsRead(conversation.id, user);
         updateLastReadMessage(conversation.id);
       }
     }
   }, [user, conversations, activeConversation, markAsRead, updateLastReadMessage]);
-
-  //TODO: Remove this later
-  useEffect(() => {
-    console.log('conversations', conversations);
-    console.log('activeConversation', activeConversation);
-  }, [conversations, activeConversation]);
-
-
 
   useEffect(() => {
     // Socket init
