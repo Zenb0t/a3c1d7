@@ -8,7 +8,7 @@ const useStyles = makeStyles(() => ({
     flexDirection: 'column',
     alignItems: 'flex-end',
   },
-  avatar: {
+  miniAvatar: {
     height: 20,
     width: 20,
     marginRight: 11,
@@ -46,7 +46,7 @@ const SenderBubble = ({ time, text, isLastRead, otherUser }) => {
         ? <Avatar
           alt={otherUser.username}
           src={otherUser.photoUrl}
-          className={classes.avatar}
+          className={classes.miniAvatar}
         /> : null}
     </Box>
   );
