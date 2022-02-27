@@ -34,21 +34,15 @@ const useStyles = makeStyles((theme) => ({
     minWidth: 20,
     maxWidth: 30,
     height: 20,
-    // borderStyle: "solid",
-    // borderColor: "black",
-    // borderWidth: "1px",
   },
   unreadMsgs: {
     textAlign: "center",
     fontSize: 10,
     color: "#FFFFFF",
-    margin: "0px 4px 0px 4px", //"3px 9px 3px 10px",
+    margin: "0px 4px 0px 4px",
     padding: "0px 4px 0px 4px",
     fontWeight: "700",
     lineHeight: "2",
-    // borderStyle: "solid",
-    // borderColor: "red",
-    // borderWidth: "1px",
   },
 }));
 
@@ -70,7 +64,7 @@ const ChatContent = ({ conversation }) => {
           {latestMessageText}
         </Typography>
       </Box>
-      <Box className={classes.chipBadge}>
+      <Box className={unreadMsgs && classes.chipBadge}>
         {unreadMsgs > 0
           ? <Typography className={classes.unreadMsgs}>{
             unreadMsgs > 99
