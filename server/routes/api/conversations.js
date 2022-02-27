@@ -92,9 +92,9 @@ router.get("/", async (req, res, next) => {
 
       // set a property for last read message
       let lastReadMessage = null;
-       
-      for (let j = length-1; j > 0; j--) {
-        if(convoJSON.messages[j].isRead && convoJSON.messages[j].senderId === userId){
+
+      for (let j = length - 1; j > 0; j--) {
+        if (convoJSON.messages[j].isRead && convoJSON.messages[j].senderId === userId) {
           lastReadMessage = convoJSON.messages[j];
           break;
         }
@@ -117,16 +117,16 @@ router.put("/:id", async (req, res, next) => {
     const conversationId = req.params.id;
     const userId = req.user.id;
 
-    const unreadMessages = await Message.findUnreadMessages(conversationId, userId);
-
     Message.update(
       { isRead: true },
       {
         where: {
-          id: {
-            [Op.in]: unreadMessages.map(msg => msg.id)
-          }
-        }
+          conversationId: conversationId,
+          isRead: false,
+          senderId: {
+            [Op.ne]: userId,
+          },
+        },
       });
     res.sendStatus(204);
   } catch (error) {
