@@ -83,7 +83,7 @@ router.get("/", async (req, res, next) => {
 
       for (let j = 0; j < length; j++) {
         if (
-          !convoJSON.messages[j].readAt &&
+          !convoJSON.messages[j].isRead &&
           convoJSON.messages[j].senderId === convoJSON.otherUser.id
         ) {
           convoJSON.unreadMessageCount++;
@@ -94,7 +94,7 @@ router.get("/", async (req, res, next) => {
       let lastReadMessage = null;
        
       for (let j = length-1; j > 0; j--) {
-        if(convoJSON.messages[j].readAt && convoJSON.messages[j].senderId === userId){
+        if(convoJSON.messages[j].isRead && convoJSON.messages[j].senderId === userId){
           lastReadMessage = convoJSON.messages[j];
           break;
         }
@@ -120,7 +120,7 @@ router.put("/:id", async (req, res, next) => {
     const unreadMessages = await Message.findUnreadMessages(conversationId, userId);
 
     Message.update(
-      { readAt: new Date() },
+      { isRead: true },
       {
         where: {
           id: {

@@ -10,10 +10,9 @@ const Message = db.define("message", {
     type: Sequelize.INTEGER,
     allowNull: false,
   },
-  readAt: {
-    type: Sequelize.DATE,
-    allowNull: true,
-    defaultValue: null,
+  isRead: {
+    type: Sequelize.BOOLEAN,
+    defaultValue: false,
   },
 });
 
@@ -26,7 +25,7 @@ Message.findUnreadMessages = async function (conversationId, userId) {
   const messages = await Message.findAll({
     where: {
       conversationId,
-      readAt: null,
+      isRead: false,
       senderId: {
         [Sequelize.Op.ne]: userId,
       },
