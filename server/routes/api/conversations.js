@@ -117,6 +117,12 @@ router.put("/:id", async (req, res, next) => {
     const conversationId = req.params.id;
     const userId = req.user.id;
 
+    //Protect route from unauthorized users
+    conversation = await Conversation.findByPk(conversationId);
+    if (conversation.user1Id !== userId || conversation.user2Id !== userId) {
+      return res.sendStatus(403);
+    }
+
     Message.update(
       { isRead: true },
       {
