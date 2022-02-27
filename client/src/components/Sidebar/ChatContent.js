@@ -8,6 +8,7 @@ const useStyles = makeStyles((theme) => ({
     justifyContent: "space-between",
     marginLeft: 20,
     flexGrow: 1,
+    alignItems: "center",
   },
   username: {
     fontWeight: "bold",
@@ -24,19 +25,30 @@ const useStyles = makeStyles((theme) => ({
     color: "#9CADC8",
     letterSpacing: -0.17,
   },
-  unreadMsgs: {
-    textAlign: "center",
-    fontSize: 10,
-    color: "#FFFFFF",
-    marginRight: 30,
-    marginTop: 10,
+  chipBadge: {
+    marginRight: 20,
+    marginTop: 30,
+    marginBottom: 30,
     backgroundColor: "#3F92FF",
     borderRadius: "10px",
     minWidth: 20,
     maxWidth: 30,
     height: 20,
-    padding: "3px 9px 3px 10px",
+    // borderStyle: "solid",
+    // borderColor: "black",
+    // borderWidth: "1px",
+  },
+  unreadMsgs: {
+    textAlign: "center",
+    fontSize: 10,
+    color: "#FFFFFF",
+    margin: "0px 4px 0px 4px", //"3px 9px 3px 10px",
+    padding: "0px 4px 0px 4px",
     fontWeight: "700",
+    lineHeight: "2",
+    // borderStyle: "solid",
+    // borderColor: "red",
+    // borderWidth: "1px",
   },
 }));
 
@@ -58,7 +70,7 @@ const ChatContent = ({ conversation }) => {
           {latestMessageText}
         </Typography>
       </Box>
-      <Box>
+      <Box className={classes.chipBadge}>
         {unreadMsgs > 0
           ? <Typography className={classes.unreadMsgs}>{
             unreadMsgs > 99
