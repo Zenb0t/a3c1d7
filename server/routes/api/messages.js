@@ -10,7 +10,6 @@ router.post("/", async (req, res, next) => {
     }
     const senderId = req.user.id;
     const { recipientId, text, conversationId, sender } = req.body;
-    const readAt = null;
 
     // if we already know conversation id, we can save time and just add it to message and return
     if (conversationId) {
@@ -43,6 +42,5 @@ router.post("/", async (req, res, next) => {
     next(error);
   }
 });
-
 
 module.exports = router;
