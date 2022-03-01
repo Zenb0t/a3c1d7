@@ -67,21 +67,22 @@ router.get("/", async (req, res, next) => {
         convoJSON.otherUser.online = false;
       }
 
+
       // set properties for latest message preview
-      let length = convoJSON.messages.length;
-      convoJSON.latestMessageText = convoJSON.messages[length - 1].text;
+      let lastIndex = convoJSON.messages.length - 1;
+      convoJSON.latestMessageText = convoJSON.messages[lastIndex].text;
       conversations[i] = convoJSON;
 
       //set a property for latest message time
-      convoJSON.latestMessageTime = convoJSON.messages[length - 1].updatedAt;
+      convoJSON.latestMessageTime = convoJSON.messages[lastIndex].createdAt;
 
       //set a latestMessageSenderId property so that frontend can display it more easily
-      convoJSON.latestMessageSenderId = convoJSON.messages[length - 1].senderId;
+      convoJSON.latestMessageSenderId = convoJSON.messages[lastIndex].senderId;
 
       // set a property for unread message count
       convoJSON.unreadMessageCount = 0;
 
-      for (let j = 0; j < length; j++) {
+      for (let j = 0; j <= lastIndex; j++) {
         if (
           !convoJSON.messages[j].readAt &&
           convoJSON.messages[j].senderId === convoJSON.otherUser.id
@@ -89,17 +90,6 @@ router.get("/", async (req, res, next) => {
           convoJSON.unreadMessageCount++;
         }
       }
-
-      // set a property for last read message
-      let lastReadMessage = null;
-       
-      for (let j = length-1; j > 0; j--) {
-        if(convoJSON.messages[j].readAt && convoJSON.messages[j].senderId === userId){
-          lastReadMessage = convoJSON.messages[j];
-          break;
-        }
-      }
-      convoJSON.lastReadMessage = lastReadMessage;
     }
 
     res.json(conversations);
@@ -110,6 +100,7 @@ router.get("/", async (req, res, next) => {
 
 // Mark all messages in a conversation as read for the current user
 router.put("/:id", async (req, res, next) => {
+  console.log(req.body);
   try {
     if (!req.user) {
       return res.sendStatus(401);
@@ -118,20 +109,19 @@ router.put("/:id", async (req, res, next) => {
     const userId = req.user.id;
 
     const unreadMessages = await Message.findUnreadMessages(conversationId, userId);
-
-    Message.update(
-      { readAt: new Date() },
-      {
-        where: {
-          id: {
-            [Op.in]: unreadMessages.map(msg => msg.id)
-          }
-        }
-      });
+    console.log("unreadMessages: " + unreadMessages);
+    for (let i = 0; i < unreadMessages.length; i++) {
+      const message = unreadMessages[i];
+      message.readAt = Date.now();
+      await message.save();
+    }
     res.sendStatus(204);
   } catch (error) {
     next(error);
   }
 });
+
+
+
 
 module.exports = router;
