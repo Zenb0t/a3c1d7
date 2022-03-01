@@ -63,7 +63,6 @@ const Home = ({ user, logout }) => {
   };
 
   const sendReadMessages = useCallback((conversationId, userId) => {
-    console.info('sending read messages');
     socket.emit('message-read', conversationId, userId);
   }, [socket]);
 
@@ -73,8 +72,6 @@ const Home = ({ user, logout }) => {
       updatedConversations.forEach((convo) => {
         if (convo.id === conversationId) {
           let messages = convo.messages;
-          //As unread messages should be always consecutive, mark as read from the end of the 
-          //array until find first read message or reach the end
           for (let i = messages.length - 1; i >= 0; i--) {
             let message = convo.messages[i];
             if (message.isRead) {
@@ -95,17 +92,13 @@ const Home = ({ user, logout }) => {
   }, [conversations, setConversations]);
 
   const updateLastReadMessage = useCallback((conversationId, userId) => {
-    console.log('updateLastReadMessage');
     try {
       let updatedConversations = [...conversations];
-      console.log('updatedConversations', updatedConversations);
       let conversation = updatedConversations.find((convo) => convo.id === conversationId);
-      let lastReadMessage = conversation.messages.slice().reverse().find((message) => message.isRead === true && message.senderId !== userId);
-      console.log('lastReadMessage', lastReadMessage);
+      let lastReadMessage = conversation.messages.slice().reverse().find((message) => message.isRead === true && message.senderId === userId);
       conversation.lastReadMessage = lastReadMessage;
       let index = updatedConversations.indexOf(conversation);
       updatedConversations[index] = conversation;
-      console.log('updatedConversations', updatedConversations);
       setConversations(updatedConversations);
     } catch (err) {
       console.error(err);
@@ -117,11 +110,11 @@ const Home = ({ user, logout }) => {
       await putReadMessages(conversationId);
       sendReadMessages(conversationId, userId);
       markConversationAsRead(conversationId, userId);
-      // updateLastReadMessage(conversationId, userId);
+      updateLastReadMessage(conversationId, userId);
     } catch (err) {
       console.error(err);
     }
-  }, [markConversationAsRead, sendReadMessages]);
+  }, [markConversationAsRead, sendReadMessages, updateLastReadMessage]);
 
   // Add message logic
   const saveMessage = async (body) => {
@@ -243,14 +236,12 @@ const Home = ({ user, logout }) => {
     }
   }, [activeConversation, conversations, markAsRead, user.id]);
 
-
-
   useEffect(() => {
     // Socket init
     socket.on('add-online-user', addOnlineUser);
     socket.on('remove-offline-user', removeOfflineUser);
     socket.on('new-message', addMessageToConversation);
-    socket.on('message-read', updateLastReadMessage);
+    socket.on('message-read', markConversationAsRead);
 
     return () => {
       // before the component is destroyed
@@ -258,9 +249,9 @@ const Home = ({ user, logout }) => {
       socket.off('add-online-user', addOnlineUser);
       socket.off('remove-offline-user', removeOfflineUser);
       socket.off('new-message', addMessageToConversation);
-      socket.off('message-read', updateLastReadMessage);
+      socket.off('message-read', markConversationAsRead);
     };
-  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket, updateLastReadMessage]);
+  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket, markConversationAsRead]);
 
   useEffect(() => {
     // when fetching, prevent redirect
