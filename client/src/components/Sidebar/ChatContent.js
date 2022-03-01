@@ -29,7 +29,6 @@ const useStyles = makeStyles((theme) => ({
     fontSize: 10,
     color: "#FFFFFF",
     marginRight: 30,
-    marginTop: 10,
     backgroundColor: "#3F92FF",
     borderRadius: "10px",
     minWidth: 20,
@@ -54,19 +53,11 @@ const ChatContent = ({ conversation }) => {
         <Typography className={classes.username}>
           {otherUser.username}
         </Typography>
-        <Typography className={unreadMsgs > 0 && latestMessageSenderId === otherUser.id ? classes.previewUnreadText : classes.previewText}>
+        <Typography className={unreadMsgs > 0 && latestMessageSenderId === otherUser.id? classes.previewUnreadText  : classes.previewText }>
           {latestMessageText}
         </Typography>
       </Box>
-      <Box>
-        {unreadMsgs > 0
-          ? <Typography className={classes.unreadMsgs}>{
-            unreadMsgs > 99
-              ? "+99"
-              : unreadMsgs
-          }</Typography>
-          : null}
-      </Box>
+      {unreadMsgs > 0 ? <Typography className={classes.unreadMsgs}>{unreadMsgs}</Typography> : null}
     </Box>
   );
 };
