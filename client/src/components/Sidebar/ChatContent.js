@@ -44,7 +44,7 @@ const ChatContent = ({ conversation }) => {
 
   const { otherUser } = conversation;
   const latestMessageText = conversation.id && conversation.latestMessageText;
-  const latestMessageSenderId = conversation.id && conversation.latestMessageSenderId;
+  const latestMessageSenderId = conversation.id && conversation.latestMessageSender;
   const unreadMsgs = conversation.id && conversation.unreadMessageCount;
 
   return (
