@@ -109,59 +109,13 @@ const Home = ({ user, logout }) => {
             let updatedConvo = convo;
             updatedConvo.messages.push(message);
             updatedConvo.latestMessageText = message.text;
-            if (activeConversation !== updatedConvo.otherUser.username)
-              updatedConvo.unreadMessageCount++;
           }
         });
         setConversations(updatedConversations);
       }
     },
-    [setConversations, conversations, activeConversation]
+    [setConversations, conversations]
   );
-
-  const markAsRead = useCallback(async (conversationId, user) => {
-    let body = {
-      id: conversationId,
-    };
-    try {
-      await axios.put(`/api/conversations/${conversationId}`, body);
-      let updatedConversations = [...conversations];
-      updatedConversations.forEach((convo) => {
-        if (convo.id === conversationId) {
-          let messages = convo.messages;
-          //As unread messages should be always consecutive, mark as read from the end of the 
-          //array until find first read message or reach the end
-          for (let i = messages.length - 1; i >= 0; i--) {
-            let message = convo.messages[i];
-            if (message.readAt !== null) {
-              break; //found first read message, break the loop
-            }
-            if (message.senderId !== user.id && message.readAt === null) {
-              message.readAt = new Date();
-            }
-          }
-          convo.unreadMessageCount = 0;
-        };
-        return convo;
-      });
-      setConversations(updatedConversations);
-    } catch (err) {
-      console.error(err);
-    }
-  }, [conversations, setConversations]);
-
-  const updateLastReadMessage = useCallback((conversationId) => {
-    setConversations((prev) =>
-      prev.map((convo) => {
-        if (convo.id === conversationId) {
-          const convoCopy = { ...convo };
-          convoCopy.lastReadMessage = { ...convoCopy.messages[convoCopy.messages.length - 1] };
-          return convoCopy;
-        } else {
-          return convo;
-        }
-      }));
-  }, [setConversations]);
 
   const setActiveChat = (username) => {
     setActiveConversation(username);
@@ -197,28 +151,6 @@ const Home = ({ user, logout }) => {
 
   // Lifecycle
 
-  //TODO: Test this
-  useEffect(() => {
-
-    if (activeConversation !== null) {
-      let conversation = conversations.find(
-        (convo) => convo.otherUser.username === activeConversation
-      );
-      if (conversation?.unreadMessageCount > 0) {
-        markAsRead(conversation.id, user);
-        updateLastReadMessage(conversation.id);
-      }
-    }
-  }, [user, conversations, activeConversation, markAsRead, updateLastReadMessage]);
-
-  //TODO: Remove this later
-  useEffect(() => {
-    console.log('conversations', conversations);
-    console.log('activeConversation', activeConversation);
-  }, [conversations, activeConversation]);
-
-
-
   useEffect(() => {
     // Socket init
     socket.on('add-online-user', addOnlineUser);
@@ -232,7 +164,7 @@ const Home = ({ user, logout }) => {
       socket.off('remove-offline-user', removeOfflineUser);
       socket.off('new-message', addMessageToConversation);
     };
-  }, [addMessageToConversation, addOnlineUser, markAsRead, removeOfflineUser, socket]);
+  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket]);
 
   useEffect(() => {
     // when fetching, prevent redirect
@@ -252,7 +184,6 @@ const Home = ({ user, logout }) => {
       try {
         const { data } = await axios.get('/api/conversations');
         setConversations(data);
-        console.log(data);
       } catch (error) {
         console.error(error);
       }
