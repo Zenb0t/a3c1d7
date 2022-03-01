@@ -49,6 +49,81 @@ const Home = ({ user, logout }) => {
     setConversations((prev) => prev.filter((convo) => convo.id));
   };
 
+  //Read message logic
+
+  const putReadMessages = async (conversationId) => {
+    let body = {
+      id: conversationId,
+    };
+    try {
+      await axios.put(`/api/conversations/${conversationId}`, body);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const sendReadMessages = useCallback((conversationId, userId) => {
+    console.info('sending read messages');
+    socket.emit('message-read', conversationId, userId);
+  }, [socket]);
+
+  const markConversationAsRead = useCallback((conversationId, userId) => {
+    try {
+      let updatedConversations = [...conversations];
+      updatedConversations.forEach((convo) => {
+        if (convo.id === conversationId) {
+          let messages = convo.messages;
+          //As unread messages should be always consecutive, mark as read from the end of the 
+          //array until find first read message or reach the end
+          for (let i = messages.length - 1; i >= 0; i--) {
+            let message = convo.messages[i];
+            if (message.isRead) {
+              break; //found first read message, break the loop
+            }
+            if (message.senderId !== userId && message.isRead === false) {
+              message.isRead = true;
+            }
+          }
+          convo.unreadMessageCount = 0;
+        };
+        return convo;
+      });
+      setConversations(updatedConversations);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [conversations, setConversations]);
+
+  const updateLastReadMessage = useCallback((conversationId, userId) => {
+    console.log('updateLastReadMessage');
+    try {
+      let updatedConversations = [...conversations];
+      console.log('updatedConversations', updatedConversations);
+      let conversation = updatedConversations.find((convo) => convo.id === conversationId);
+      let lastReadMessage = conversation.messages.slice().reverse().find((message) => message.isRead === true && message.senderId !== userId);
+      console.log('lastReadMessage', lastReadMessage);
+      conversation.lastReadMessage = lastReadMessage;
+      let index = updatedConversations.indexOf(conversation);
+      updatedConversations[index] = conversation;
+      console.log('updatedConversations', updatedConversations);
+      setConversations(updatedConversations);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [conversations, setConversations]);
+
+  const markAsRead = useCallback(async (conversationId, userId) => {
+    try {
+      await putReadMessages(conversationId);
+      sendReadMessages(conversationId, userId);
+      markConversationAsRead(conversationId, userId);
+      // updateLastReadMessage(conversationId, userId);
+    } catch (err) {
+      console.error(err);
+    }
+  }, [markConversationAsRead, sendReadMessages]);
+
+  // Add message logic
   const saveMessage = async (body) => {
     const { data } = await axios.post('/api/messages', body);
     return data;
@@ -107,92 +182,21 @@ const Home = ({ user, logout }) => {
         updatedConversations.forEach((convo) => {
           if (convo.id === message.conversationId) {
             let updatedConvo = convo;
-            updatedConvo.messages.push(message);
-            updatedConvo.latestMessageText = message.text;
-            if (activeConversation !== updatedConvo.otherUser.username)
+            let messageCopy = { ...message };
+            if (activeConversation && activeConversation !== updatedConvo.otherUser.username) {
               updatedConvo.unreadMessageCount++;
+            } else {
+              markAsRead(message.conversationId, user.id);
+            }
+            updatedConvo.messages.push(messageCopy);
+            updatedConvo.latestMessageText = messageCopy.text;
           }
         });
         setConversations(updatedConversations);
       }
     },
-    [setConversations, conversations, activeConversation]
+    [conversations, activeConversation, markAsRead, user.id]
   );
-
-  const putReadMessages = useCallback(async (conversationId) => {
-    let body = {
-      id: conversationId,
-    };
-    try {
-      await axios.put(`/api/conversations/${conversationId}`, body);
-    } catch (err) {
-      console.error(err);
-    }
-  }, []);
-
-  //TODO: check this
-  const readMessages = useCallback((conversationId) => {
-    socket.emit('read-message', {
-      conversationId,
-    });
-  }, [socket]);
-
-  const updateReadMessages = useCallback((conversationId, user) => {
-    try {
-      let updatedConversations = [...conversations];
-      updatedConversations.forEach((convo) => {
-        if (convo.id === conversationId) {
-          let messages = convo.messages;
-          //As unread messages should be always consecutive, mark as read from the end of the 
-          //array until find first read message or reach the end
-          for (let i = messages.length - 1; i >= 0; i--) {
-            let message = convo.messages[i];
-            if (message.readAt !== null) {
-              break; //found first read message, break the loop
-            }
-            if (message.senderId !== user.id && message.readAt === null) {
-              message.readAt = new Date();
-            }
-          }
-          convo.unreadMessageCount = 0;
-        };
-        return convo;
-      });
-      setConversations(updatedConversations);
-    } catch (err) {
-      console.error(err);
-    }
-  }, [conversations, setConversations]);
-
-  const updateLastReadMessage = useCallback((conversationId) => {
-    setConversations((prev) =>
-      prev.map((convo) => {
-        if (convo.id === conversationId) {
-          const convoCopy = { ...convo };
-          const messages = { ...convoCopy.messages };
-          for (let j = messages.length - 1; j > 0; j--) {
-            if (messages[j].readAt && messages[j].senderId === user.id) {
-              convoCopy.lastReadMessage = messages[j];
-              break;
-            }
-          }
-          return convoCopy;
-        } else {
-          return convo;
-        }
-      }));
-  }, [user.id]);
-
-  const markAsRead = useCallback(async (conversationId) => {
-    try {
-      await putReadMessages(conversationId);
-      // readMessages(conversationId);
-      updateReadMessages(conversationId, user);
-      updateLastReadMessage(conversationId);
-    } catch (err) {
-      console.error(err);
-    }
-  }, [putReadMessages, updateReadMessages, updateLastReadMessage, user]);
 
   const setActiveChat = (username) => {
     setActiveConversation(username);
@@ -229,22 +233,24 @@ const Home = ({ user, logout }) => {
   // Lifecycle
 
   useEffect(() => {
-
     if (activeConversation !== null) {
-      let conversation = conversations.find(
+      let activeConvo = conversations.find(
         (convo) => convo.otherUser.username === activeConversation
       );
-      if (conversation?.unreadMessageCount > 0) {
-        markAsRead(conversation.id);
+      if (activeConvo?.unreadMessageCount > 0) {
+        markAsRead(activeConvo.id, user.id);
       }
     }
-  }, [activeConversation, conversations, markAsRead]);
+  }, [activeConversation, conversations, markAsRead, user.id]);
+
+
 
   useEffect(() => {
     // Socket init
     socket.on('add-online-user', addOnlineUser);
     socket.on('remove-offline-user', removeOfflineUser);
     socket.on('new-message', addMessageToConversation);
+    socket.on('message-read', updateLastReadMessage);
 
     return () => {
       // before the component is destroyed
@@ -252,8 +258,9 @@ const Home = ({ user, logout }) => {
       socket.off('add-online-user', addOnlineUser);
       socket.off('remove-offline-user', removeOfflineUser);
       socket.off('new-message', addMessageToConversation);
+      socket.off('message-read', updateLastReadMessage);
     };
-  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket, user, updateLastReadMessage]);
+  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket, updateLastReadMessage]);
 
   useEffect(() => {
     // when fetching, prevent redirect
