@@ -95,7 +95,7 @@ const Home = ({ user, logout }) => {
     try {
       let updatedConversations = [...conversations];
       let conversation = updatedConversations.find((convo) => convo.id === conversationId);
-      let lastReadMessage = conversation.messages.slice().reverse().find((message) => message.isRead === true && message.senderId === userId);
+      let lastReadMessage = conversation.messages.slice().reverse().find((message) => message.isRead === true && message.senderId !== userId);
       conversation.lastReadMessage = lastReadMessage;
       let index = updatedConversations.indexOf(conversation);
       updatedConversations[index] = conversation;
@@ -237,11 +237,23 @@ const Home = ({ user, logout }) => {
   }, [activeConversation, conversations, markAsRead, user.id]);
 
   useEffect(() => {
+    socket.on('message-read', (data) => {
+      markConversationAsRead(data.conversationId, data.userId);
+      updateLastReadMessage(data.conversationId, data.userId);
+    });
+
+    socket.off('message-read', (data) => {
+      markConversationAsRead(data.conversationId, data.userId);
+      updateLastReadMessage(data.conversationId, data.userId);
+    });
+
+  }, [markConversationAsRead, socket, updateLastReadMessage]);
+
+  useEffect(() => {
     // Socket init
     socket.on('add-online-user', addOnlineUser);
     socket.on('remove-offline-user', removeOfflineUser);
     socket.on('new-message', addMessageToConversation);
-    socket.on('message-read', markConversationAsRead);
 
     return () => {
       // before the component is destroyed
@@ -249,9 +261,8 @@ const Home = ({ user, logout }) => {
       socket.off('add-online-user', addOnlineUser);
       socket.off('remove-offline-user', removeOfflineUser);
       socket.off('new-message', addMessageToConversation);
-      socket.off('message-read', markConversationAsRead);
     };
-  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket, markConversationAsRead]);
+  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket]);
 
   useEffect(() => {
     // when fetching, prevent redirect
