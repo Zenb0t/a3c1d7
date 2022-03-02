@@ -42,12 +42,11 @@ const SenderBubble = ({ time, text, isLastRead, otherUser }) => {
       <Box className={classes.bubble}>
         <Typography className={classes.text}>{text}</Typography>
       </Box>
-      {isLastRead
-        ? <Avatar
+      {isLastRead && <Avatar
           alt={otherUser.username}
           src={otherUser.photoUrl}
           className={classes.miniAvatar}
-        /> : null}
+        />}
     </Box>
   );
 };
