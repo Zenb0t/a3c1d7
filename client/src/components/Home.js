@@ -158,10 +158,10 @@ const Home = ({ user, logout }) => {
         setConversations((prev) => [newConvo, ...prev]);
       } else {
         let updatedConversations = [...conversations];
-        updatedConversations.forEach((convo) => {
+        updatedConversations.forEach((convo, index) => {
           if (convo.id === message.conversationId) {
-            let updatedConvo = convo;
-            let messageCopy = { ...message };
+            const updatedConvo = {...convo};
+            const messageCopy = { ...message };
             if (activeConversation && activeConversation !== updatedConvo.otherUser.username) {
               updatedConvo.unreadMessageCount++;
             } else {
@@ -169,7 +169,9 @@ const Home = ({ user, logout }) => {
             }
             updatedConvo.messages.push(messageCopy);
             updatedConvo.latestMessageText = messageCopy.text;
+            updatedConversations[index] = updatedConvo;
           }
+          
         });
         setConversations(updatedConversations);
       }
