@@ -77,7 +77,7 @@ const Home = ({ user, logout }) => {
             if (message.isRead) {
               break; //found first read message, break the loop
             }
-            if (message.senderId !== userId && message.isRead === false) {
+            if (message.senderId !== userId && !message.isRead) {
               message.isRead = true;
             }
           }
