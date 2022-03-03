@@ -68,7 +68,7 @@ const Home = ({ user, logout }) => {
 
   const markConversationAsRead = useCallback((conversationId, userId) => {
     try {
-      let updatedConversations = [...conversations];
+      const updatedConversations = [...conversations];
       updatedConversations.forEach((convo) => {
         if (convo.id === conversationId) {
           const messages = convo.messages;
