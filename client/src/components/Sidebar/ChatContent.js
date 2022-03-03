@@ -65,13 +65,10 @@ const ChatContent = ({ conversation }) => {
         </Typography>
       </Box>
       <Box className={unreadMsgs && classes.chipBadge}>
-        {unreadMsgs > 0
-          ? <Typography className={classes.unreadMsgs}>{
-            unreadMsgs > 99
-              ? "+99"
-              : unreadMsgs
-          }</Typography>
-          : null}
+        {unreadMsgs > 0 &&
+          <Typography className={classes.unreadMsgs}>
+            {unreadMsgs > 99 ? "+99" : unreadMsgs}
+          </Typography>}
       </Box>
     </Box>
   );
