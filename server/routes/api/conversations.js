@@ -67,16 +67,69 @@ router.get("/", async (req, res, next) => {
         convoJSON.otherUser.online = false;
       }
 
-      // set properties for notification count and latest message preview
-      let lastIndex = convoJSON.messages.length-1;
-      convoJSON.latestMessageText = convoJSON.messages[lastIndex].text;
+      // set properties for latest message preview
+      let length = convoJSON.messages.length;
+      convoJSON.latestMessageText = convoJSON.messages[length - 1].text;
       conversations[i] = convoJSON;
 
       //set a property for latest message time
-      convoJSON.latestMessageTime = convoJSON.messages[lastIndex].createdAt;
+      convoJSON.latestMessageTime = convoJSON.messages[length - 1].updatedAt;
+
+      //set a latestMessageSenderId property so that frontend can display it more easily
+      convoJSON.latestMessageSenderId = convoJSON.messages[length - 1].senderId;
+
+      // set a property for unread message count
+      convoJSON.unreadMessageCount = 0;
+
+       // set a property for last read message
+      let lastReadMessage = null;
+
+      for (let j = length - 1; j > 0; j--) {
+        if (!convoJSON.messages[j].isRead && convoJSON.messages[j].senderId === convoJSON.otherUser.id
+        ) {
+          convoJSON.unreadMessageCount++;
+        }
+        if (convoJSON.messages[j].isRead && convoJSON.messages[j].senderId === userId) {
+          lastReadMessage = convoJSON.messages[j];
+          break;
+        }
+      }
+      convoJSON.lastReadMessage = lastReadMessage;
     }
 
     res.json(conversations);
+  } catch (error) {
+    next(error);
+  }
+});
+
+// Mark all messages in a conversation as read for the current user
+router.put("/:id", async (req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.sendStatus(401);
+    }
+    const conversationId = req.params.id;
+    const userId = req.user.id;
+
+    //Protect route from unauthorized users
+    const conversation = await Conversation.findByPk(conversationId);
+    if (userId !== conversation.user1Id && userId !== conversation.user2Id) {
+      return res.sendStatus(403);
+    }
+
+    Message.update(
+      { isRead: true },
+      {
+        where: {
+          conversationId: conversationId,
+          isRead: false,
+          senderId: {
+            [Op.ne]: userId,
+          },
+        },
+      });
+    res.sendStatus(204);
   } catch (error) {
     next(error);
   }
