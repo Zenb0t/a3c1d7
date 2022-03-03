@@ -215,7 +215,7 @@ const Home = ({ user, logout }) => {
 
   useEffect(() => {
     if (activeConversation !== null) {
-      let activeConvo = conversations.find(
+      const activeConvo = conversations.find(
         (convo) => convo.otherUser.username === activeConversation
       );
       if (activeConvo?.unreadMessageCount > 0) {
