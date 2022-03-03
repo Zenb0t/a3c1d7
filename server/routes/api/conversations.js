@@ -81,19 +81,14 @@ router.get("/", async (req, res, next) => {
       // set a property for unread message count
       convoJSON.unreadMessageCount = 0;
 
-      for (let j = 0; j < length; j++) {
-        if (
-          !convoJSON.messages[j].isRead &&
-          convoJSON.messages[j].senderId === convoJSON.otherUser.id
-        ) {
-          convoJSON.unreadMessageCount++;
-        }
-      }
-
-      // set a property for last read message
+       // set a property for last read message
       let lastReadMessage = null;
 
       for (let j = length - 1; j > 0; j--) {
+        if (!convoJSON.messages[j].isRead && convoJSON.messages[j].senderId === convoJSON.otherUser.id
+        ) {
+          convoJSON.unreadMessageCount++;
+        }
         if (convoJSON.messages[j].isRead && convoJSON.messages[j].senderId === userId) {
           lastReadMessage = convoJSON.messages[j];
           break;
@@ -119,7 +114,7 @@ router.put("/:id", async (req, res, next) => {
 
     //Protect route from unauthorized users
     const conversation = await Conversation.findByPk(conversationId);
-    if (userId !== conversation.user1Id && userId !== conversation.user2Id ) {
+    if (userId !== conversation.user1Id && userId !== conversation.user2Id) {
       return res.sendStatus(403);
     }
 
