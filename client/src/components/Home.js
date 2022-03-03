@@ -71,7 +71,7 @@ const Home = ({ user, logout }) => {
       let updatedConversations = [...conversations];
       updatedConversations.forEach((convo) => {
         if (convo.id === conversationId) {
-          let messages = convo.messages;
+          const messages = convo.messages;
           for (let i = messages.length - 1; i >= 0; i--) {
             let message = convo.messages[i];
             if (message.isRead) {
