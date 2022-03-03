@@ -81,24 +81,11 @@ const Home = ({ user, logout }) => {
               message.isRead = true;
             }
           }
+          convo.lastReadMessage = messages.slice().reverse().find((message) => message.isRead === true && message.senderId !== userId);
           convo.unreadMessageCount = 0;
         };
         return convo;
       });
-      setConversations(updatedConversations);
-    } catch (err) {
-      console.error(err);
-    }
-  }, [conversations, setConversations]);
-
-  const updateLastReadMessage = useCallback((conversationId, userId) => {
-    try {
-      let updatedConversations = [...conversations];
-      let conversation = updatedConversations.find((convo) => convo.id === conversationId);
-      let lastReadMessage = conversation.messages.slice().reverse().find((message) => message.isRead === true && message.senderId !== userId);
-      conversation.lastReadMessage = lastReadMessage;
-      let index = updatedConversations.indexOf(conversation);
-      updatedConversations[index] = conversation;
       setConversations(updatedConversations);
     } catch (err) {
       console.error(err);
@@ -110,11 +97,10 @@ const Home = ({ user, logout }) => {
       await putReadMessages(conversationId);
       sendReadMessages(conversationId, userId);
       markConversationAsRead(conversationId, userId);
-      updateLastReadMessage(conversationId, userId);
     } catch (err) {
       console.error(err);
     }
-  }, [markConversationAsRead, sendReadMessages, updateLastReadMessage]);
+  }, [markConversationAsRead, sendReadMessages]);
 
   // Add message logic
   const saveMessage = async (body) => {
@@ -239,15 +225,9 @@ const Home = ({ user, logout }) => {
   useEffect(() => {
     socket.on('message-read', (data) => {
       markConversationAsRead(data.conversationId, data.userId);
-      updateLastReadMessage(data.conversationId, data.userId);
     });
 
-    socket.off('message-read', (data) => {
-      markConversationAsRead(data.conversationId, data.userId);
-      updateLastReadMessage(data.conversationId, data.userId);
-    });
-
-  }, [markConversationAsRead, socket, updateLastReadMessage]);
+  }, [markConversationAsRead, socket]);
 
   useEffect(() => {
     // Socket init
